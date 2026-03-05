@@ -75,7 +75,8 @@ export default function DatabaseSync() {
       addLog("PM schedules synchronized.");
       setDescription({
         ...description,
-        pmSchedules: "PM schedules synchronized successfully"
+        assetDatabase: "Synced 21 equipment codes",
+        pmSchedules: "Synchronized successfully"
       })
       setProgress(100);
 
@@ -205,7 +206,7 @@ export default function DatabaseSync() {
               fullWidth
               onClick={handleSync}
             >
-              Sync
+              Synchronize
             </Button>
 
             <Button

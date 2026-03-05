@@ -8,8 +8,11 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          minHeight: 48, // Touch friendly
-          fontSize: "1rem",
+          minHeight: 24, // Touch friendly
+          fontSize: "0.9rem",
+          textTransform: "none",
+          paddingLeft: 12,
+          paddingRight: 12
         },
       },
     },

@@ -9,24 +9,36 @@ import {
   ListItemButton,
   ListItemText,
   Box,
+  Divider,
+  ListItemIcon,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useState } from "react";
 import { useAuthStore } from "../store/authStore";
+import Logo from '../assets/ynylogo_white.png';
 
-import Logo from '../assets/react.svg'
+// Import icons
+import { 
+  Inventory as InventoryIcon, 
+  CalendarToday as PmSchedulesIcon, 
+  CheckCircle as InventoryCheckIcon, 
+  Build as PerformInventoryIcon, 
+  Summarize as InventorySummaryIcon, 
+  ExitToApp as LogoutIcon ,
+  Person as PersonIcon
+} from "@mui/icons-material";
 
 export default function Layout() {
   const [open, setOpen] = useState(false);
-  const logout = useAuthStore((state) => state.logout);
+  const { user, logout } = useAuthStore();
   const navigate = useNavigate();
 
   const menuItems = [
-    { text: "Assets", path: "/assets" },
-    { text: "PM Schedules", path: "/pm" },
-    { text: "Inventory Check", path: "/inventory" },
-    { text: "Perform Inventory", path: "/inventory/perform" },
-    { text: "Inventory Summary", path: "/inventory/summary" },
+    { text: "Assets", path: "/assets", icon: <InventoryIcon /> },
+    { text: "PM Schedules", path: "/pm", icon: <PmSchedulesIcon /> },
+    { text: "Inventory Check", path: "/inventory", icon: <InventoryCheckIcon /> },
+    { text: "Perform Inventory Check", path: "/inventory/perform", icon: <PerformInventoryIcon /> },
+    { text: "Inventory Summary", path: "/inventory/summary", icon: <InventorySummaryIcon /> },
   ];
 
   const handleLogout = () => {
@@ -36,65 +48,114 @@ export default function Layout() {
 
   return (
     <>
-      {/* <AppBar position="static">
-        <Toolbar style={{ backgroundColor: "#2c3e50" }}>
-          <img src={Logo} />
-          <Typography variant="h6" sx={{ flexGrow: 1, ml: 2 }}>
-            Hexagon EAM (YNY Technology)
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ cursor: "pointer" }}
-            onClick={handleLogout}
-          >
-            Logout
-          </Typography>
-        </Toolbar>
-      </AppBar> */}
+      {/* AppBar */}
       <AppBar position="static">
-        <Toolbar style={{ backgroundColor: "#e7e7e7", color: "#2c3e50", padding: 0 }}>
-          <IconButton color="inherit" onClick={() => setOpen(true)}>
+        <Toolbar style={{ backgroundColor: "#2c3e50", color: "#e7e7e7", padding: 0 }}>
+          <IconButton color="inherit" onClick={() => setOpen(true)} sx={{ padding: '8px' }}>
             <MenuIcon />
           </IconButton>
-          <Typography variant="h5" sx={{ fontWeight: "bold", flexGrow: 1, pl: 1.5 }}>
-            Asset Management
+          <Typography variant="h5" sx={{ fontWeight: "bold", flexGrow: 0, pl: 1.5 }}>
+            Hxgn EAM
           </Typography>
-          {/* <Typography
-            variant="body2"
-            sx={{ cursor: "pointer" }}
-            onClick={handleLogout}
-          >
-            Logout
-          </Typography> */}
+          <Typography variant="h7" sx={{ flexGrow: 1, pl: 1.5 }}>
+            (YNY Technology)
+          </Typography>
         </Toolbar>
       </AppBar>
 
+      {/* Drawer */}
       <Drawer open={open} onClose={() => setOpen(false)}>
-        <Box sx={{ width: 250 }}>
-          <List>
-            {menuItems.map((item) => (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            width: "80vw",
+            height: "100%",
+            color: "#e7e7e7",
+            backgroundColor: "#2c3e50",
+            padding: 2,
+            boxSizing: "border-box",
+          }}
+        >
+          {/* Menu Links */}
+          <List sx={{ paddingBottom: 2 }}>
+            {menuItems.map((item, index) => (
               <ListItemButton
-                key={item.text}
+                key={index} // Ensure each item has a unique key
                 onClick={() => {
                   navigate(item.path);
                   setOpen(false);
                 }}
+                sx={{
+                  padding: '12px 16px',
+                  '&:hover': {
+                    backgroundColor: "#34495e",
+                  },
+                }}
               >
-                <ListItemText primary={item.text} />
+                <ListItemIcon sx={{ color: "#e7e7e7" }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText primary={item.text} sx={{ fontWeight: 500 }} />
               </ListItemButton>
             ))}
           </List>
+
+          <Divider sx={{ backgroundColor: '#7f8c8d', marginBottom: 2 }} />
+
+          {/* User / Logout */}
           <List>
             <ListItemButton
               onClick={handleLogout}
+              sx={{
+                padding: '12px 16px',
+                borderRadius: '4px',
+                '&:hover': {
+                  backgroundColor: "#34495e",
+                },
+              }}
             >
-              <ListItemText primary="Logout" />
+              <ListItemIcon sx={{ color: "#e7e7e7" }}>
+                <PersonIcon />
+              </ListItemIcon>
+              <ListItemText primary={user?.username} sx={{ fontWeight: 500 }} />
+            </ListItemButton>
+            <ListItemButton
+              onClick={handleLogout}
+              sx={{
+                padding: '12px 16px',
+                borderRadius: '4px',
+                '&:hover': {
+                  backgroundColor: "#e7e7e7",
+                },
+              }}
+            >
+              <ListItemIcon sx={{ color: "#e7e7e7" }}>
+                <LogoutIcon />
+              </ListItemIcon>
+              <ListItemText primary="Logout" sx={{ fontWeight: 600 }} />
             </ListItemButton>
           </List>
+
+          {/* Logo at the Bottom */}
+          <Box sx={{ mt: 2, textAlign: "center" }}>
+            <img
+              src={Logo}
+              alt="Logo"
+              style={{
+                width: "100%",
+                maxWidth: "180px",
+                objectFit: "contain",
+                margin: "auto",
+              }}
+            />
+          </Box>
         </Box>
       </Drawer>
 
-      <Box p={1}>
+      {/* Content */}
+      <Box p={2}>
         <Outlet />
       </Box>
     </>
