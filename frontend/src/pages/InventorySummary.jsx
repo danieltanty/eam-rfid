@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Box, Typography, Select, MenuItem, FormControl, InputLabel, Stack } from "@mui/material";
+import { Box, Typography, Select, MenuItem, FormControl, InputLabel, Stack, Button } from "@mui/material";
 import ExpandableTable from "../components/ExpandableTable";
 import AssetDetailsModal from "../components/AssetDetailsModal";
 import { assetsDetails } from "../mock/assetsDetails";
@@ -62,29 +62,6 @@ const [workOrders, setWorkOrders] = useState([]);
   const columns = [
     { field:"assetCode", headerName:"Asset Code" },
     { field:"assetDesc", headerName:"Description" },
-    // {
-    //   field:"status",
-    //   headerName:"Status",
-    //   renderCell:(row)=>(
-    //     <Select
-    //       size="small"
-    //       value={row.status}
-    //       onChange={(e)=>handleStatusChange(row.id,e.target.value)}
-    //       sx={{
-    //         fontSize: 12,
-    //         height: 24,
-    //         "& .MuiSelect-select": {
-    //           padding: "2px 6px"
-    //         }
-    //       }}
-    //     >
-    //       <MenuItem value="matched">Matched</MenuItem>
-    //       <MenuItem value="missing">Missing</MenuItem>
-    //       <MenuItem value="new">New</MenuItem>
-    //       <MenuItem value="returned">Returned</MenuItem>
-    //     </Select>
-    //   )
-    // }
   ];
 
   return (
@@ -114,7 +91,6 @@ const [workOrders, setWorkOrders] = useState([]);
             </MenuItem>
           ))}
         </Select>
-
       </FormControl>
 
 
@@ -197,6 +173,21 @@ const [workOrders, setWorkOrders] = useState([]);
 
         })}
       />
+
+      <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+        <Button
+          size="small"
+          variant="contained"
+          sx={{ backgroundColor: "#397e00" }}
+          onClick={() => console.log('Save Inventory Changes')}
+        >
+          Save Changes
+        </Button>
+
+        <Button size="small" variant="contained" color="primary">
+          Submit to Hxgn EAM
+        </Button>
+      </Box>
 {/* 
       <Typography variant="caption" sx={{ mb: 1, display: "block" }}>
         Showing {filteredData.length} records

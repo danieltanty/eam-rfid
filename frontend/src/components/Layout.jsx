@@ -107,7 +107,7 @@ export default function Layout() {
           {/* User / Logout */}
           <List>
             <ListItemButton
-              onClick={handleLogout}
+              // onClick={}
               sx={{
                 padding: '12px 16px',
                 borderRadius: '4px',

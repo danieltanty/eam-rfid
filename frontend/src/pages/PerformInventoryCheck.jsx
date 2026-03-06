@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
-import { Box, Button, InputLabel, MenuItem, Select, Typography, Chip } from "@mui/material";
+import { Box, Button, InputLabel, MenuItem, Select, Typography, Chip, FormControl} from "@mui/material";
 import { assetsDetails } from "../mock/assetsDetails";
 import AssetDetailsModal from "../components/AssetDetailsModal";
 import RfidScanModal from "../components/RfidScanModal";
@@ -13,38 +13,64 @@ Success: #d6fdd9 */}
 const PerformInventoryCheck = () => {
   const location = useLocation();
   const inventory = location.state?.inventory;
+  const locations = [...new Set(assetsDetails.map(a => a.parentDesc))];
 
   const [tableData, setTableData] = useState([]);
-  const [selectedAsset, setSelectedAssset] = useState(inventory?.asset)
+  const [selectedAsset, setSelectedAsset] = useState(locations.length ? locations[0] : "")
   const [selectedAssetDetails, setSelectedAssetDetails] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [openScanModal, setOpenScanModal] = useState(false);
-  const [stats, setStats] = useState({
-    matched: 0,
-    new: 0,
-    missing: 0,
-    returned: 0
-  });
+
+  const stats = useMemo(() => {
+    let matched = 0;
+    let missing = 0;
+    let newAssets = 0;
+    let returned = 0;
+
+    tableData.forEach(asset => {
+      if (asset.status === "matched") matched++;
+      if (asset.status === "missing") missing++;
+      if (asset.status === "new") newAssets++;
+      if (asset.status === "returned") returned++;
+    });
+
+    return {
+      matched,
+      missing,
+      new: newAssets,
+      returned
+    };
+  }, [tableData]);
+
+  const calculateStats = (data) => {
+    let matched = 0;
+    let missing = 0;
+    let newAssets = 0;
+    let returned = 0;
+
+    data.forEach(asset => {
+      if (asset.status === "matched") matched++;
+      if (asset.status === "missing") missing++;
+      if (asset.status === "new") newAssets++;
+      if (asset.status === "returned") returned++;
+    });
+
+    setStats({
+      matched,
+      missing,
+      new: newAssets,
+      returned
+    });
+  };
 
   useEffect(() => {
-    if (!inventory) return;
+    if (!selectedAsset) return;
 
-    console.log("Selected Inventory:", inventory);
+    const data = assetsDetails.filter(
+      x => x.parentDesc === selectedAsset
+    );
 
-    // call API later
-    // api.get(`/inventory/${inventory.id}`)
-
-    const data = assetsDetails.filter(x => x.parentDesc === selectedAsset)
     setTableData(data);
-
-  }, [inventory, selectedAsset]);
-
-  useEffect(() => {
-    // Simulate API delay
-    setTimeout(() => {
-      const data = assetsDetails.filter(x => x.parentDesc === selectedAsset)
-      setTableData(data);
-    }, 0);
   }, [selectedAsset]);
 
   const columns = [
@@ -58,7 +84,7 @@ const PerformInventoryCheck = () => {
   };
 
   const handleFilterAsset = (event) => {
-    setSelectedAssset(event.target.value)
+    setSelectedAsset(event.target.value)
   }
 
   const handleProcessScan = (codes) => {
@@ -66,80 +92,41 @@ const PerformInventoryCheck = () => {
     const normalizedCodes = codes.map(c => c.trim().toUpperCase());
     const scannedSet = new Set(normalizedCodes);
 
-    let matched = 0;
-    let missing = 0;
-    let newAssets = 0;
-    let returned = 0;
+    const assetMap = new Map(
+      tableData.map(asset => [
+        asset.assetCode.trim().toUpperCase(),
+        asset
+      ])
+    );
 
     const updatedAssets = tableData.map(asset => {
+      const code = asset.assetCode.trim().toUpperCase();
 
-      const assetCode = asset.assetCode.trim().toUpperCase();
+      if (scannedSet.has(code)) {
 
-      // asset scanned
-      if (scannedSet.has(assetCode)) {
-
-        // previously missing → returned
         if (asset.status === "missing") {
-          returned++;
-
-          return {
-            ...asset,
-            status: "returned"
-          };
+          return { ...asset, status: "returned" };
         }
 
-        matched++;
-
-        return {
-          ...asset,
-          status: "matched"
-        };
+        return { ...asset, status: "matched" };
       }
 
-      // asset NOT scanned
-      missing++;
-
-      return {
-        ...asset,
-        status: "missing"
-      };
+      return { ...asset, status: "missing" };
     });
 
-    // detect new assets
-    const newAssetRecords = [];
+    const newAssets = normalizedCodes
+      .filter(code => !assetMap.has(code))
+      .map(code => ({
+        id: `new-${code}`,
+        assetCode: code,
+        assetDesc: "Unknown Asset",
+        parentAsset: "-",
+        parentDescription: "-",
+        lastUpdated: new Date().toISOString(),
+        status: "new"
+      }));
 
-    normalizedCodes.forEach(code => {
-
-      const exists = tableData.some(
-        asset => asset.assetCode.trim().toUpperCase() === code
-      );
-
-      if (!exists) {
-
-        newAssets++;
-
-        newAssetRecords.push({
-          id: `new-${code}`,
-          assetCode: code,
-          assetDesc: "Unknown Asset",
-          parentAsset: "-",
-          parentDescription: "-",
-          lastUpdated: new Date().toISOString(),
-          status: "new"
-        });
-
-      }
-
-    });
-
-    setTableData([...updatedAssets, ...newAssetRecords]);
-
-    setStats({
-      matched,
-      missing,
-      new: newAssets,
-      returned
-    });
+    setTableData([...updatedAssets, ...newAssets]);
 
     setOpenScanModal(false);
   };
@@ -150,18 +137,23 @@ const PerformInventoryCheck = () => {
         Perform Inventory Check
       </Typography>
 
-      <InputLabel id="asset-filter">Location</InputLabel>
-      <Select
-        size="small"
-        id="asset-filter"
-        value={selectedAsset}
-        onChange={handleFilterAsset}
-        fullWidth
-        sx={{ mb: 2 }}
-      >
-        <MenuItem value="Summer Meeting Room">Summer Meeting Room (WO: 52645)</MenuItem>
-        <MenuItem value="Winter Meeting Room">Winter Meeting Room (WO: 52646)</MenuItem>
-      </Select>
+      <FormControl size="small" fullWidth>
+        <InputLabel>Location</InputLabel>
+
+        <Select
+          value={selectedAsset}
+          id="asset-filter"
+          label="Location"
+          onChange={handleFilterAsset}
+          sx={{ mb:2 }}
+        >
+          {locations.map((loc) => (
+            <MenuItem key={loc} value={loc}>
+              {loc}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
         <Button

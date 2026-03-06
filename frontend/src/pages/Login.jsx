@@ -32,7 +32,7 @@ export default function Login() {
         data: {
             token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0IiwiaWF0IjoxNjg1NzY2MDAwfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
             user: {
-                username: "Daniel",
+                username: "Admin",
                 role: "admin"
             },
         },
